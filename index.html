@@ -1,0 +1,401 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Security Audit Tool</title>
+  <style>
+body { 
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0 40px;
+  background-color: #f9f9f9;
+}
+
+#options button {
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  padding: 10px 15px;
+  margin-bottom: 8px;
+  background-color: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 6px;
+  text-align: left; 
+  cursor: pointer;
+}
+
+#options button:hover {
+   background-color: #c8e6c9;
+}
+
+#result {
+  background-color: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 6px;
+  padding: 15px 20px;
+  margin-top: 20px;
+  display: none;
+}
+
+#domain {
+  font-weight: bold;
+}
+
+#options button.selected {
+  background-color: #a5d6a7;
+  border-color: #66bb6a;
+}
+
+#back-btn {
+  display: none;
+}
+
+#domain-breakdown {
+  background-color: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 6px;
+  padding: 15px 20px;
+  margin-top: 10px;
+  display: none;
+}
+
+#banner {
+  background-color: #2e7d32;
+  color: white;
+  padding: 30px 40px;
+  margin-bottom: 0;
+}
+
+#banner h1 {
+  color: white;
+  margin-bottom: 6px;
+  font-size: 28px;
+}
+
+#banner p {
+  color: #c8e6c9;
+  font-size: 14px;
+  margin: 0;
+}
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  backgrounf-color: #f9f9f9;
+}
+
+
+#content {
+  padding: 10px 40px 40px 40px;
+}
+
+  </style>
+</head>
+<body>
+<div id="banner">
+  <h1>Security Awareness Audit</h1>
+  <p>For corporate employees</p>
+</div>
+
+<div id="content">
+  <p><strong>This audit is designed for corporate employees.</strong></p>
+  <p>There are 15 questions across 5 domains: Password Hygiene, Authentication, Phishing and Social Engineering, Business Email Compromise, and GDPR Awareness.</p>
+  <p>Answer honestly - there are no wrong answers, only opportunities to improve.</p>
+
+  <button id="start-btn" onclick="startQuiz()">Begin Audit</button>
+
+  <div id="quiz" style="display:none">
+   <p id="domain"></p>
+   <p id="question-text"></p>
+   <div id="options"></div>
+   <button id="back-btn" onclick="previousQuestion()">Back</button>
+   <button onclick="nextQuestion()">Next</button>
+ </div>
+
+
+ <div id="result"></div>
+ <div id="domain-breakdown"></div>
+</div>
+
+  <script>
+
+const questions = [
+  {
+    domain: "Password Hygiene",
+    question: "How do you create passwords for your work accounts?",
+    options: [
+      { text: "I use simple memorable passwords like my name or password123", score: 0 },
+      { text: "I use the same strong password across most work accounts", score: 1 },
+      { text: "I use different passwords but create and remember them myself", score: 2 }, 
+      { text: "I use a company-approved password manager to generate and store unique passwords", score: 3 }
+     ]
+   },
+   {
+    domain: "Password Hygiene",
+    question: "Your company doesn't enforce a password change policy. How often do you update your passwords?",
+    options: [
+      { text: "Never, unless forced to", score: 0 },
+      { text: "Once a year or when I remember", score: 1 },
+      { text: "Every few months", score: 2 },
+      { text: "Regularly, and immediately if I suspect any account has been compromised", score: 3 }
+    ]
+  },
+  {
+    domain: "Password Hygiene",
+    question: "A colleague says they need access to a shared system urgently and asks for your login details. What do you do?",
+    options: [
+      { text: "Share them — it is a colleague I trust", score: 0 },
+      { text: "Share them but change my password afterwards", score: 1 },
+      { text: "Decline but don't report it", score: 2 },
+      { text: "Decline and report it to IT or my manager as a potential social engineering attempt", score: 3 }
+    ]
+  }, 
+  {
+    domain: "Authentication",
+    question: "Your company introduces mandatory two-factor authentication. Your reaction is:", 
+    options: [ 
+     { text: "I find workarounds to avoid it - it slows me down", score: 0 },
+     { text: "I set it up only because it is required", score: 1},
+     { text: "I set it up and understand it adds a layer of security", score: 2 },
+     { text: "I set it up, understand why it matters, and encourage colleagues to do the same", score: 3 }
+    ]
+  },
+  {
+    domain: "Authentication",
+    question: "You receive an MFA prompt on your phone for a login you did not initiate. What do you do?",
+    options: [
+      { text: "Approve it — probably just a glitch", score: 0 },
+      { text: "Ignore it and do nothing", score: 1 },
+      { text: "Deny it and change my password later", score: 2 },
+      { text: "Deny it immediately and report it to IT as a potential account compromise attempt", score: 3 }
+    ]
+  },
+  {
+    domain: "Authentication",
+    question: "How do you store your backup authentication codes given when you set up 2FA?",
+    options: [
+      { text: "I don't save them", score: 0 },
+      { text: "I screenshot them and leave them in my camera roll", score: 1 },
+      { text: "I save them in a notes app on my phone", score: 2 },
+      { text: "I store them securely — printed and locked away or in an encrypted password manager", score: 3 }
+    ]
+  },
+  {
+    domain: "Phishing and Social Engineering",
+    question: "You receive an urgent email from your CEO asking you to transfer funds or buy gift cards immediately and keep it confidential. What do you do?",
+    options: [
+      { text: "Action it — it is from the CEO", score: 0 },
+      { text: "I feel uneasy but action it to avoid getting in trouble", score: 1 },
+      { text: "Ignore it but do not report it", score: 2 },
+      { text: "Do not action it, verify directly with the CEO via phone or in person, and report it to IT", score: 3 }
+    ]
+  },
+  {
+    domain: "Phishing and Social Engineering",
+    question: "How do you verify whether a link in an email is safe before clicking?",
+    options: [
+      { text: "I don't — if it looks legitimate I click it", score: 0 },
+      { text: "I check if the email looks official", score: 1 },
+      { text: "I hover over the link to preview the URL", score: 2 },
+      { text: "I hover to check the URL, look for mismatched domains, and when in doubt go directly to the website instead of clicking", score: 3 }
+    ]
+  },
+  {
+    domain: "Phishing and Social Engineering",
+    question: "A caller claims to be from IT support and asks you to confirm your username and password to fix an urgent issue. What do you do?",
+    options: [
+      { text: "Provide it — IT need access to help me", score: 0 },
+      { text: "Provide my username but not my password", score: 1 },
+      { text: "Refuse but do not report it", score: 2 },
+      { text: "Refuse, hang up, call IT directly using the official number, and report the incident", score: 3 }
+    ]
+  },
+  {
+    domain: "Business Email Compromise",
+    question: "You receive an invoice from a supplier you recognise but the bank details have changed. What do you do?",
+    options: [
+      { text: "Process it — the email looks legitimate", score: 0 },
+      { text: "Email the supplier back on the same thread to confirm", score: 1 },
+      { text: "Delay payment but take no further action", score: 2 },
+      { text: "Call the supplier directly using a known number to verify the change before processing anything", score: 3 }
+    ]
+  },
+  {
+    domain: "Business Email Compromise",
+    question: "How well do you know the signs of a Business Email Compromise attack?",
+    options: [
+      { text: "I have never heard of it", score: 0 },
+      { text: "I have heard the term but would not know how to spot one", score: 1 },
+      { text: "I know it involves fake emails impersonating someone in the business", score: 2 },
+      { text: "I can identify common signs — spoofed addresses, urgency, unusual requests, and slight domain variations", score: 3 }
+    ]
+  },
+  {
+    domain: "Business Email Compromise",
+    question: "An email arrives appearing to be from your manager sent from a slightly different address. What do you do?",
+    options: [
+      { text: "Reply and follow the instructions", score: 0 },
+      { text: "Notice it looks odd but reply anyway", score: 1 },
+      { text: "Ignore the email", score: 2 },
+      { text: "Do not reply, check the sender domain carefully, verify with my manager directly, and report to IT", score: 3 }
+    ]
+  },
+  {
+    domain: "GDPR Awareness",
+    question: "A client emails you asking what personal data your company holds on them and requests it be deleted. What do you do?",
+    options: [
+      { text: "Ignore it or delete the email — it is not my department", score: 0 },
+      { text: "Reply and tell them I will look into it but take no further action", score: 1 },
+      { text: "Forward it to a manager but do not follow up", score: 2 },
+      { text: "Recognise this as a Subject Access Request and Data Erasure request under GDPR, escalate immediately to the Data Protection Officer, and log it — a response is required within 30 days", score: 3 }
+    ]
+  },
+  {
+    domain: "GDPR Awareness",
+    question: "You accidentally send an email containing a client's personal data to the wrong recipient. What do you do?",
+    options: [
+      { text: "Hope the recipient ignores it and do not mention it", score: 0 },
+      { text: "Email the recipient asking them to delete it and leave it there", score: 1 },
+      { text: "Tell my manager informally but do not formally report it", score: 2 },
+      { text: "Report it immediately to my manager and the Data Protection Officer — under UK and EU GDPR a personal data breach must be reported to the ICO within 72 hours if it poses a risk to individuals", score: 3 }
+    ]
+  },
+  {
+    domain: "GDPR Awareness",
+    question: "A new colleague asks you to share a spreadsheet containing customer personal data so they can complete a task. What do you do?",
+    options: [
+      { text: "Send it over — they work here so it is fine", score: 0 },
+      { text: "Send it but mention they should keep it confidential", score: 1 },
+      { text: "Check if they actually need it before sending", score: 2 },
+      { text: "Apply data minimisation — only share what is strictly necessary, confirm they are authorised to access it, and use a secure method to share it", score: 3 }
+    ]
+  },
+];
+
+
+let currentQuestion = 0;
+let answers = [];
+
+function startQuiz() {
+  document.getElementById("start-btn").style.display = "none";
+  document.getElementById("quiz").style.display = "block";
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = questions[currentQuestion];
+
+  document.getElementById("domain").textContent = "Q" + (currentQuestion + 1) + " - " + q.domain;
+  document.getElementById("question-text").textContent = q.question;
+
+  const optionsContainer = document.getElementById("options");
+  optionsContainer.innerHTML = "";
+
+  q.options.forEach(function(option, index) {
+    const button = document.createElement("button");
+    button.textContent = option.text;
+    button.onclick = function() { selectAnswer(index); };
+    optionsContainer.appendChild(button);
+  
+  });
+
+  if (currentQuestion === 0) {
+    document.getElementById("back-btn").style.display = "none";
+  } else {
+    document.getElementById("back-btn").style.display = "inline";
+  }
+}
+
+
+showQuestion();
+function selectAnswer(index) {
+  answers[currentQuestion] = questions[currentQuestion].options[index].score;
+
+  const buttons = document.querySelectorAll("#options button");
+  buttons.forEach(function(btn) {
+    btn.classList.remove("selected");
+  });
+  
+  buttons[index].classList.add("selected");
+  
+}
+function previousQuestion() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    showQuestion();
+  }
+}
+
+function nextQuestion() {
+  if (answers[currentQuestion] === undefined) {
+    alert("Please select an answer before continuing."); 
+    return;
+  }
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  document.getElementById("result").style.display = "block";
+  const totalScore = answers.reduce(function(sum, score) {
+    return sum + score;
+  }, 0);
+
+   const maxScore = questions.length * 3;
+   const percentage = Math.round((totalScore / maxScore) * 100);
+
+   let rating;
+   if (percentage >=85) { rating = "Strong - you demonstrate good security awareness."; }
+   else if (percentage >= 65) { rating = "Moderate — some good habits but gaps remain."; }
+   else if (percentage >= 40) { rating = "Needs improvement — several risk areas identified."; }
+   else { rating = "High risk — immediate awareness training is recommended."; }
+
+const domainScores = {};
+
+questions.forEach(function(q, i) {
+ const domain = q.domain;
+ if (!domainScores[domain]) {
+   domainScores[domain] = { score:0, max:0 };
+ }
+ domainScores[domain].score += answers[i] || 0;
+ domainScores[domain].max += 3;
+});
+
+let lowestDomain = "";
+let lowestPercentage = 100;
+let breakdownHTML = "<h3>Domain Breakdown</h3>";
+
+Object.keys(domainScores).forEach(function(domain) {
+  const d = domainScores[domain];
+  const domainPercentage = Math.round((d.score / d.max) * 100);
+  breakdownHTML += "<p><strong>" + domain + ":</strong> " + domainPercentage + "%</p>";
+  if (domainPercentage < lowestPercentage) {
+    lowestPercentage = domainPercentage;
+    lowestDomain = domain;
+  }
+});
+
+breakdownHTML += "<p><strong>Focus area:</strong> " + lowestDomain + " scored lowest at " + lowestPercentage + "%.</p>";
+
+document.getElementById("domain-breakdown").style.display = "block";
+document.getElementById("domain-breakdown").innerHTML = breakdownHTML;
+
+   document.getElementById("domain").textContent = "";
+   document.getElementById("question-text").textContent = "";
+   document.getElementById("options").innerHTML = "";
+
+   document.getElementById("result").innerHTML = 
+     "<h2>Your Score: " + percentage + "%</h2><p>" + rating + "</p>";
+ }
+
+
+  </script>
+
+</div>
+</body>
+</html>
